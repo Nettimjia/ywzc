@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>义乌阳光招采 - 企业简易采购公告</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            color: white;
+            padding: 24px 32px;
+        }
+
+        .header h1 { font-size: 22px; font-weight: 600; }
+        .header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+        .container { max-width: 1300px; margin: 0 auto; padding: 24px 20px; }
+
+        /* 搜索栏 */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+
+        .search-input-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input-wrap .icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 16px;
+        }
+
+        #keywordInput {
+            width: 100%;
+            padding: 10px 12px 10px 38px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        #keywordInput:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary { background: #1a73e8; color: white; }
+        .btn-primary:hover { background: #1558b0; }
+
+        .btn-outline {
+            background: white;
+            color: #555;
+            border: 1px solid #d9d9d9;
+        }
+        .btn-outline:hover { background: #f5f5f5; border-color: #bbb; }
+
+        .btn-refresh {
+            background: white;
+            color: #1a73e8;
+            border: 1px solid #1a73e8;
+        }
+        .btn-refresh:hover { background: #e8f0fe; }
+
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* 表格区域 */
+        .data-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title { font-size: 15px; font-weight: 600; color: #333; }
+        .result-count { font-size: 13px; color: #888; }
+
+        .table-container { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            padding: 13px 16px;
+            text-align: left;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 13px;
+        }
+
+        th {
+            background: #fafafa;
+            color: #888;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover td { background: #f8faff; }
+
+        .company-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            background: #e8f0fe;
+            color: #1558b0;
+            border-radius: 12px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .title-text {
+            color: #222;
+            line-height: 1.5;
+        }
+
+        .date-text { color: #888; white-space: nowrap; }
+
+        .link-btn {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 5px 12px;
+            border: 1px solid #1a73e8;
+            border-radius: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .link-btn:hover { background: #1a73e8; color: white; }
+
+        /* 加载 & 空状态 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px;
+        }
+        .loading.active { display: block; }
+
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid #e8f0fe;
+            border-top: 3px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #bbb;
+            font-size: 14px;
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+        /* 消息提示 */
+        .toast {
+            position: fixed;
+            top: 24px; right: 24px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            z-index: 999;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: #34a853; }
+        .toast.error { background: #ea4335; }
+        .toast.info { background: #1a73e8; }
+
+        /* 高亮关键词 */
+        mark {
+            background: #fff176;
+            color: inherit;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>义乌阳光招采 · 企业简易采购公告</h1>
+        <p>数据来源：www.ywygzc.com · 实时搜索</p>
+    </div>
+
+    <div class="container">
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+            <div class="search-input-wrap">
+                <span class="icon">🔍</span>
+                <input type="text" id="keywordInput" placeholder="输入关键字搜索，例如：朋友圈、抖音、媒体推广..." />
+            </div>
+            <button class="btn btn-primary" onclick="doSearch()" id="searchBtn">搜索</button>
+            <button class="btn btn-outline" onclick="clearSearch()">清空</button>
+            <button class="btn btn-refresh" onclick="refreshData()" id="refreshBtn">🔄 刷新数据</button>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="data-section">
+            <div class="section-header">
+                <span class="section-title">📋 公告列表</span>
+                <span class="result-count" id="resultCount">共 0 条</span>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="color:#aaa; font-size:14px;">正在搜索...</p>
+            </div>
+
+            <div class="table-container" id="tableWrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:180px">企业名称</th>
+                            <th>公告标题</th>
+                            <th style="width:120px">发布日期</th>
+                            <th style="width:80px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="empty-state" id="emptyState">
+                <div class="icon">📭</div>
+                <p>输入关键字后点击搜索，或点击"刷新数据"加载最新公告</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentKeyword = '';
+
+        // 初始化：自动拉取最新数据
+        window.addEventListener('DOMContentLoaded', () => {
+            autoRefreshOnLoad();
+            document.getElementById('keywordInput').addEventListener('keydown', e => {
+                if (e.key === 'Enter') doSearch();
+            });
+        });
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast ' + type;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function setLoading(on, msg) {
+            document.getElementById('loading').classList.toggle('active', on);
+            document.getElementById('tableWrapper').style.display = on ? 'none' : '';
+            if (msg) document.querySelector('#loading p').textContent = msg;
+        }
+
+        // 页面打开时自动从网站拉取最新数据
+        async function autoRefreshOnLoad() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 加载中...';
+            setLoading(true, '正在拉取最新公告数据...');
+            try {
+                const res = await fetch('/api/refresh');
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`已加载 ${data.count} 条公告`, 'success');
+                }
+                // 拉取完再渲染列表
+                const res2 = await fetch('/api/search');
+                const data2 = await res2.json();
+                renderTable(data2.data, '');
+            } catch(e) {
+                showToast('加载失败：' + e.message, 'error');
+            }
+            setLoading(false);
+            btn.disabled = false;
+            btn.textContent = '🔄 刷新数据';
+        }
+
+        // 加载数据库现有数据
+        async function loadExisting() {
+            setLoading(true, '正在加载数据...');
+            try {
+                const res = await fetch('/api/search');
+                const data = await res.json();
+                renderTable(data.data, '');
+            } catch(e) {
+                showToast('加载失败：' + e.message, 'error');
+            }
+            setLoading(false);
+        }
+
+        // 搜索
+        async function doSearch() {
+            const kw = document.getElementById('keywordInput').value.trim();
+            currentKeyword = kw;
+            setLoading(true);
+            document.getElementById('searchBtn').disabled = true;
+            try {
+                const res = await fetch('/api/search?keyword=' + encodeURIComponent(kw));
+                const data = await res.json();
+                renderTable(data.data, kw);
+                if (kw) showToast(`搜索到 ${data.count} 条结果`, 'info');
+            } catch(e) {
+                showToast('搜索失败：' + e.message, 'error');
+            }
+            setLoading(false);
+            document.getElementById('searchBtn').disabled = false;
+        }
+
+        // 清空搜索
+        function clearSearch() {
+            document.getElementById('keywordInput').value = '';
+            currentKeyword = '';
+            loadExisting();
+        }
+
+        // 刷新数据（采集最新）
+        async function refreshData() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 采集中...';
+            showToast('正在从网站采集最新数据，请稍候...', 'info');
+            try {
+                const res = await fetch('/api/refresh');
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    loadExisting();
+                } else {
+                    showToast('采集失败', 'error');
+                }
+            } catch(e) {
+                showToast('采集失败：' + e.message, 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = '🔄 刷新数据';
+        }
+
+        // 高亮关键词
+        function highlight(text, kw) {
+            if (!kw || !text) return text || '';
+            const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return text.replace(new RegExp(escaped, 'gi'), m => `<mark>${m}</mark>`);
+        }
+
+        // 渲染表格
+        function renderTable(list, kw) {
+            const tbody = document.getElementById('tableBody');
+            const empty = document.getElementById('emptyState');
+            const count = document.getElementById('resultCount');
+
+            count.textContent = `共 ${list.length} 条`;
+
+            if (!list.length) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                empty.querySelector('p').textContent = kw ? `没有找到包含"${kw}"的公告` : '暂无数据，点击"刷新数据"采集最新公告';
+                return;
+            }
+
+            empty.style.display = 'none';
+            tbody.innerHTML = list.map(item => `
+                <tr>
+                    <td><span class="company-badge">${highlight(item.company || '未知', kw)}</span></td>
+                    <td><span class="title-text">${highlight(item.title || '', kw)}</span></td>
+                    <td><span class="date-text">${(item.publish_time || '').slice(0, 10)}</span></td>
+                    <td><a href="${item.url}" target="_blank" class="link-btn">查看</a></td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
