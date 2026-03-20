@@ -88,25 +88,17 @@ def api_search():
 
 @app.route('/api/refresh')
 def api_refresh():
-    """刷新接口：用多个关键词批量采集"""
-    keywords = ['采购', '项目', '招标', '服务', '工程',
-                '广告', '推广', '朋友圈', '抖音', '媒体', '成交']
-    all_items, seen = [], set()
-    for kw in keywords:
-        items = parse_records(fetch_api(kw))
-        for item in items:
-            if item['id'] not in seen:
-                seen.add(item['id'])
-                all_items.append(item)
-    
-    # 按发布时间排序
-    all_items.sort(key=lambda x: x['publish_time'] or '', reverse=True)
+    """刷新接口：只用一个关键词快速采集，避免超时"""
+    # 只用一个关键词"采购"，获取100条最新数据
+    # 避免多个请求导致 Render 免费版超时（30秒限制）
+    data = fetch_api('采购', page=0, size=100)
+    items = parse_records(data)
     
     return jsonify({
         'success': True,
-        'count': len(all_items),
-        'message': f'成功采集 {len(all_items)} 条公告',
-        'data': all_items
+        'count': len(items),
+        'message': f'成功采集 {len(items)} 条公告',
+        'data': items
     })
 
 
